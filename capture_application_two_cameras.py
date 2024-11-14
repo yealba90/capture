@@ -53,13 +53,15 @@ signal.signal(signal.SIGTERM, signal_handler)  # Para `kill` o detener el proces
 # Configuration parameters for two cameras
 CAMERA_CONFIGS = [
     {
-        "rtsp_url": 'rtsp://bios:B10s2024!@192.168.1.248:554/live1s1.sdp',
-        "save_directory": 'image_storage/camera1',
+        "camera_name": 'machos',
+        "rtsp_url": 'rtsp://bios:B10s2024!@10.41.16.161:554/live1s1.sdp',
+        "save_directory": 'image_storage/machos',
         "interval": 60  # Interval time in seconds for capturing images from camera 1 (1 hour)
     },
     {
-        "rtsp_url": 'rtsp://bios:B10s2024!@192.168.1.249:554/live1s1.sdp',
-        "save_directory": 'image_storage/camera2',
+        "camera_name": 'hembras',
+        "rtsp_url": 'rtsp://bios:B10s2024!@10.41.16.162:554/live1s1.sdp',
+        "save_directory": 'image_storage/hembras',
         "interval": 60  # Interval time in seconds for capturing images from camera 2 (1 hour)
     }
 ]
@@ -94,7 +96,7 @@ for config in CAMERA_CONFIGS:
 
 
 # Función para capturar imágenes
-def capture_image(rtsp_url, save_directory):
+def capture_image(camera_name, rtsp_url, save_directory):
     try:
         cap = cv2.VideoCapture(rtsp_url)
         if not cap.isOpened():
@@ -107,7 +109,7 @@ def capture_image(rtsp_url, save_directory):
             raise ValueError(f"Failed to capture image from {rtsp_url}")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_name = os.path.join(save_directory, f'image_{timestamp}_0.jpg')
+        file_name = os.path.join(save_directory, f'{camera_name}_{timestamp}_0.jpg')
         cv2.imwrite(file_name, frame)
         print(f"Image saved as {file_name}")
         return file_name
@@ -229,7 +231,7 @@ def main():
         try:
             # Ejecutar la captura de imagen y la carga en Snowflake para cada cámara
             for config in CAMERA_CONFIGS:
-                file_name = capture_image(config["rtsp_url"], config["save_directory"])
+                file_name = capture_image(config["camera_name"], config["rtsp_url"], config["save_directory"])
                 if file_name:
                     upload_all_images_to_snowflake()
 
