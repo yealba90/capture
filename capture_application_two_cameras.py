@@ -26,15 +26,13 @@ signal.signal(signal.SIGTERM, signal_handler)
 CAMERA_CONFIGS = [
     {
         "rtsp_url": 'rtsp://bios:B10s2024!@192.168.1.248:554/live1s1.sdp',
-        "save_directory": 'C:/Users/yeison.alvarez/Desktop/SOFTWARE/image_capture/pruebas/camara1',
-        #"save_directory": '/path/to/storage/camera1',  # Update path for camera 1
-        "interval": 15  # Interval time in seconds for capturing images from camera 1 (1 hour)
+        "save_directory": 'image_storage/camera1',
+        "interval": 3600  # Interval time in seconds for capturing images from camera 1 (1 hour)
     },
     {
         "rtsp_url": 'rtsp://bios:B10s2024!@192.168.1.249:554/live1s1.sdp',
-        "save_directory": 'C:/Users/yeison.alvarez/Desktop/SOFTWARE/image_capture/pruebas/camara2',
-        #"save_directory": '/path/to/storage/camera2',  # Update path for camera 2
-        "interval": 15  # Interval time in seconds for capturing images from camera 2 (1 hour)
+        "save_directory": 'image_storage/camera2',
+        "interval": 3600  # Interval time in seconds for capturing images from camera 2 (1 hour)
     }
 ]
 
@@ -101,7 +99,7 @@ def camera_capture_loop(config, camera_index):
         image_path = capture_image(config["rtsp_url"], config["save_directory"], count)
         if image_path:
             print(f"Camera {camera_index} captured image: {image_path}")
-            upload_all_images_to_snowflake()
+            #upload_all_images_to_snowflake()
         else:
             print(f"Camera {camera_index} skipping upload due to capture error.")
 
