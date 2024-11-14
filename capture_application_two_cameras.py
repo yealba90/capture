@@ -53,7 +53,8 @@ CAMERA_CONFIGS = [
 for config in CAMERA_CONFIGS:
     Path(config["save_directory"]).mkdir(parents=True, exist_ok=True)
 
-def capture_image(rtsp_url, save_directory, count):
+
+def capture_image(rtsp_url, save_directory):
     cap = cv2.VideoCapture(rtsp_url)
     if not cap.isOpened():
         print(f"Could not open the video stream for {rtsp_url}.")
@@ -66,12 +67,16 @@ def capture_image(rtsp_url, save_directory, count):
         print(f"Failed to capture image from {rtsp_url}.")
         return None
 
+    # Generar el nombre de archivo sin contador y con un '0' al final
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_name = os.path.join(save_directory, f'image_{count}_{timestamp}.jpg')
+    file_name = os.path.join(save_directory, f'image_{timestamp}_0.jpg')
+    
+    # Guardar la imagen en el directorio especificado
     cv2.imwrite(file_name, frame)
     print(f"Image saved as {file_name}")
 
     return file_name
+
 
 def upload_all_images_to_snowflake():
     conn = connect(
@@ -91,29 +96,33 @@ def upload_all_images_to_snowflake():
         for file_name in os.listdir(save_directory):
             file_path = os.path.join(save_directory, file_name)
             
-            if os.path.isfile(file_path) and file_path.endswith(".jpg"):
+            # Procesar solo archivos de imagen que terminen en '_0.jpg'
+            if os.path.isfile(file_path) and file_path.endswith("_0.jpg"):
                 try:
-                    # Ensure no compression by adding AUTO_COMPRESS=FALSE
+                    # Ruta de archivo para Snowflake sin compresión
                     snowflake_file_path = f"file://{file_path.replace(os.sep, '/')}"
-                    cursor.execute(f"PUT '{snowflake_file_path}' @STAGE AUTO_COMPRESS=FALSE")
+                    cursor.execute(f"PUT '{snowflake_file_path}' @PIC_SANBERNARDO AUTO_COMPRESS=FALSE")
                     print(f"Uploaded {file_path} to Snowflake stage.")
                     
+                    # Cambiar el nombre del archivo para indicar que ha sido subido
+                    new_file_path = file_path.replace("_0.jpg", "_1.jpg")
+                    os.rename(file_path, new_file_path)
+                    print(f"Renamed {file_path} to {new_file_path}")
+
                 except Exception as e:
                     print(f"Failed to upload {file_path} due to {e}")
 
     conn.close()
 
 def camera_capture_loop(config, camera_index):
-    count = 1
     while not stop_threads:
-        image_path = capture_image(config["rtsp_url"], config["save_directory"], count)
+        image_path = capture_image(config["rtsp_url"], config["save_directory"])
         if image_path:
             print(f"Camera {camera_index} captured image: {image_path}")
-            #upload_all_images_to_snowflake()
+            upload_all_images_to_snowflake()
         else:
             print(f"Camera {camera_index} skipping upload due to capture error.")
 
-        count += 1
         time.sleep(config["interval"])
 
 
