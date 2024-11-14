@@ -16,7 +16,7 @@ stop_threads = False
 load_dotenv()
 
 # Obtener las credenciales desde las variables de entorno
-user = os.getenv("USER")
+user = os.getenv("SNOWFLAKE_USER")
 password = os.getenv("PASSWORD")
 account = os.getenv("ACCOUNT")
 role = os.getenv("ROLE")
