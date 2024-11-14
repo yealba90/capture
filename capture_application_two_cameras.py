@@ -9,6 +9,7 @@ import threading
 import signal
 from dotenv import load_dotenv
 import logging
+import subprocess
 
 # Define a global variable to control the loop
 stop_threads = False
@@ -54,12 +55,12 @@ CAMERA_CONFIGS = [
     {
         "rtsp_url": 'rtsp://bios:B10s2024!@192.168.1.248:554/live1s1.sdp',
         "save_directory": 'image_storage/camera1',
-        "interval": 1800  # Interval time in seconds for capturing images from camera 1 (1 hour)
+        "interval": 60  # Interval time in seconds for capturing images from camera 1 (1 hour)
     },
     {
         "rtsp_url": 'rtsp://bios:B10s2024!@192.168.1.249:554/live1s1.sdp',
         "save_directory": 'image_storage/camera2',
-        "interval": 1860  # Interval time in seconds for capturing images from camera 2 (1 hour)
+        "interval": 60  # Interval time in seconds for capturing images from camera 2 (1 hour)
     }
 ]
 
@@ -183,24 +184,65 @@ def upload_all_images_to_snowflake():
         logging.error(f"Error in upload_all_images_to_snowflake: {e}")
 
 
-# Bucle principal para ejecutar el programa con reintentos
+# Función para verificar y actualizar el repositorio
+def check_for_updates():
+    try:
+        result = subprocess.run(["git", "pull"], capture_output=True, text=True)
+        if "Already up to date" not in result.stdout:
+            print("Repository updated. Restarting the program...")
+            logging.info("Repository updated. Restarting the program...")
+            return True
+    except Exception as e:
+        logging.error(f"Failed to check for updates: {e}")
+    return False
+
+
+# # Bucle principal para ejecutar el programa con reintentos
+# def main():
+#     global running
+#     while running:
+#         try:
+#             # Ejecutar la captura de imagen y la carga en Snowflake
+#             for config in CAMERA_CONFIGS:
+#                 file_name = capture_image(config["rtsp_url"], config["save_directory"])
+#                 if file_name:
+#                     upload_all_images_to_snowflake()
+#                 time.sleep(config["interval"])
+
+#             # Espera antes del próximo ciclo
+#             time.sleep(10)
+#         except Exception as e:
+#             # Registrar cualquier error no manejado y esperar antes de reintentar
+#             logging.error(f"Unhandled error in main loop: {e}")
+#             print("Error detected. Retrying in 30 seconds...")
+#             time.sleep(30)  # Espera antes de reintentar
+
+# Bucle principal para ejecutar el programa con reintentos y pausas entre capturas
 def main():
     global running
     while running:
+        # Verificar si hay actualizaciones en el repositorio
+        if check_for_updates():
+            # Si hay actualizaciones, reiniciar el programa
+            os.execv(__file__, ["python3"] + sys.argv)
+
         try:
-            # Ejecutar la captura de imagen y la carga en Snowflake
+            # Ejecutar la captura de imagen y la carga en Snowflake para cada cámara
             for config in CAMERA_CONFIGS:
                 file_name = capture_image(config["rtsp_url"], config["save_directory"])
                 if file_name:
                     upload_all_images_to_snowflake()
 
-            # Espera antes del próximo ciclo
-            time.sleep(10)
+                # Pausa entre capturas basada en el intervalo configurado para cada cámara
+            print("Esperando ejecucion")    
+            time.sleep(3600) # Intervalo de tiempo para envio de imagenes cada hora
+
         except Exception as e:
             # Registrar cualquier error no manejado y esperar antes de reintentar
             logging.error(f"Unhandled error in main loop: {e}")
             print("Error detected. Retrying in 30 seconds...")
             time.sleep(30)  # Espera antes de reintentar
+
 
 if __name__ == "__main__":
     main()
