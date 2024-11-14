@@ -142,3 +142,4 @@ widgetsnbextension==4.0.13
 zipp==3.20.2
 opencv-python-headless
 snowflake-connector-python
+python-dotenv

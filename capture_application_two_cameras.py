@@ -7,9 +7,22 @@ from pathlib import Path
 from snowflake.connector import connect  # Placeholder for Snowflake connection setup
 import threading
 import signal
+from dotenv import load_dotenv
 
 # Define a global variable to control the loop
 stop_threads = False
+
+# Cargar las variables del archivo .env
+load_dotenv()
+
+# Obtener las credenciales desde las variables de entorno
+user = os.getenv("USER")
+password = os.getenv("PASSWORD")
+account = os.getenv("ACCOUNT")
+role = os.getenv("ROLE")
+warehouse = os.getenv("WAREHOUSE")
+database = os.getenv("DATABASE")
+schema = os.getenv("SCHEMA")
 
 # Function to handle termination signal
 def signal_handler(sig, frame):
@@ -62,13 +75,13 @@ def capture_image(rtsp_url, save_directory, count):
 
 def upload_all_images_to_snowflake():
     conn = connect(
-        user='user',
-        password='password',
-        account='account',
-        role='role',
-        warehouse='warehouse',
-        database='database',
-        schema='schema'
+        user=user,
+        password=password,
+        account=account,
+        role=role,
+        warehouse=warehouse,
+        database=database,
+        schema=schema
     )
     cursor = conn.cursor()
 
@@ -89,9 +102,6 @@ def upload_all_images_to_snowflake():
                     print(f"Failed to upload {file_path} due to {e}")
 
     conn.close()
-
-
-
 
 def camera_capture_loop(config, camera_index):
     count = 1
