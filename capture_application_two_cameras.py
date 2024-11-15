@@ -5,7 +5,6 @@ import os
 from datetime import datetime
 from pathlib import Path
 from snowflake.connector import connect  # Placeholder for Snowflake connection setup
-import threading
 import signal
 from dotenv import load_dotenv
 import logging
@@ -253,25 +252,3 @@ if __name__ == "__main__":
 
 
 
-# def camera_capture_loop(config, camera_index):
-#     while not stop_threads:
-#         image_path = capture_image(config["rtsp_url"], config["save_directory"])
-#         if image_path:
-#             print(f"Camera {camera_index} captured image: {image_path}")
-#             upload_all_images_to_snowflake()
-#         else:
-#             print(f"Camera {camera_index} skipping upload due to capture error.")
-
-#         time.sleep(config["interval"])
-
-
-# # Launch a thread for each camera configuration
-# threads = []
-# for i, config in enumerate(CAMERA_CONFIGS, start=1):
-#     thread = threading.Thread(target=camera_capture_loop, args=(config, i))
-#     thread.start()
-#     threads.append(thread)
-
-# # Join threads (optional, if you want the main script to wait for their completion)
-# for thread in threads:
-#     thread.join()
