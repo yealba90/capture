@@ -237,7 +237,7 @@ def main():
 
                 # Pausa entre capturas basada en el intervalo configurado para cada cámara
             print("Esperando ejecucion")    
-            time.sleep(3600) # Intervalo de tiempo para envio de imagenes cada hora
+            time.sleep(300) # Intervalo de tiempo para envio de imagenes cada hora
 
         except Exception as e:
             # Registrar cualquier error no manejado y esperar antes de reintentar
